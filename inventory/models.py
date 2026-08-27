@@ -13,14 +13,14 @@ class Medicine(models.Model):
     name = models.CharField(max_length=100)
     generic_name = models.CharField(max_length=100)
     description = models.TextField()
-    quantity = models.PositiveIntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     sku = models.CharField(max_length=50, unique=True)
     units = models.CharField(max_length=50)
+    
     def __str__(self):
         return self.name
-    
-    
+
+
 class Batch(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
     batch_number = models.CharField(max_length=50, unique=True)
