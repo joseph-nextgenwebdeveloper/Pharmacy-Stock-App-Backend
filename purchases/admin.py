@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import PurchaseOrder, PurchaseOrderItem, GoodsReceived
 
-admin.site.register(PurchaseOrder)
-admin.site.register(PurchaseOrderItem)  
+from .models import GoodsReceived, GoodsReceivedItem
+
+
 admin.site.register(GoodsReceived)
+admin.site.register(GoodsReceivedItem)
