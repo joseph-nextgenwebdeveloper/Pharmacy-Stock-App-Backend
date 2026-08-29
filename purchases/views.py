@@ -11,7 +11,7 @@ class GoodsReceivedListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(received_by=self.request.user)
+        serializer.save()
 
 
 

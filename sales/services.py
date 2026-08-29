@@ -1,9 +1,9 @@
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-
+from notifications.services import create_low_stock_notification,create_out_of_stock_notification
 from inventory.models import Batch, StockMovement
-
 from .models import Sale, SaleItem
 
 
@@ -98,6 +98,23 @@ def create_sale(*, user, receipt_number, payment_method, items):
         batch.save(
             update_fields=["quantity"]
         )
+        
+        
+        medicine = item["medicine"]
+
+        total_stock = (
+                medicine.batches.aggregate(total=Sum("quantity"))["total"] or 0
+            )
+
+        if total_stock == 0:
+            create_out_of_stock_notification(user, medicine)
+
+        elif total_stock <= medicine.reorder_level:
+            create_low_stock_notification(
+                user, medicine,
+                total_stock,
+                medicine.reorder_level,
+            )
 
         # Create sale item
         SaleItem.objects.create(

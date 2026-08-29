@@ -1,0 +1,70 @@
+Remaining Backend Implementation Checklist
+
+Cross-module improvements
+
+Connect purchase received notifications to Purchases.
+
+Implement expired medicine notifications.
+
+Implement expiring medicine notifications.
+
+Add scheduled notification checks (without Celery for now;
+manual/management command or endpoint).
+
+Improve validation for report query parameters (year, month).
+
+Review serializers, services, and views for duplicated logic.
+
+Review and standardize related_name values across models.
+
+Perform a full integration/code consistency review.
+
+Testing
+
+End-to-end Postman testing:
+
+Accounts
+
+Inventory
+
+Suppliers
+
+Purchases
+
+Sales
+
+Notifications
+
+Dashboard
+
+Reports
+
+Verify business rules:
+
+No negative stock
+
+Expired medicines cannot be dispensed
+
+Stock movements are always recorded
+
+Notifications are generated correctly
+
+Dashboard values are accurate
+
+Reports return correct data
+
+Possible enhancements (after MVP)
+
+Date-range filters for reports.
+
+Dashboard performance optimizations.
+
+Role-based permissions refinement.
+
+Pagination/filtering/search where appropriate.
+
+API documentation.
+
+Unit and integration tests.
+
+Celery + Redis for scheduled/background jobs.
