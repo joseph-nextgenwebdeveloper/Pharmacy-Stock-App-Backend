@@ -116,23 +116,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "pharmacy_config.wsgi.application"
 
-
 # --------------------------------------------------
 # Database
 # --------------------------------------------------
 
-DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv(
-            "DATABASE_URL",
-            f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
-        ),
-        conn_max_age=600,
-        ssl_require=not DEBUG,
-    )
-}
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-
+if DATABASE_URL:
+    # Production (Render + Supabase PostgreSQL)
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    # Local Development (SQLite)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 # --------------------------------------------------
 # Password Validation
 # --------------------------------------------------
