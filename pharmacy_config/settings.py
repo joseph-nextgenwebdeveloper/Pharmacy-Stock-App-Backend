@@ -13,7 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 # --------------------------------------------------
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "django-insecure-mdl&=zz#g$4^6i=wzjqn5-ugyn=4-zxa-um!uuqf49y4o6#ed&"
+)
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
@@ -120,10 +123,11 @@ WSGI_APPLICATION = "pharmacy_config.wsgi.application"
 # Database
 # --------------------------------------------------
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
-if DATABASE_URL:
-    # Production (Render + Supabase PostgreSQL)
+# Production (Render + Supabase PostgreSQL)
+if DATABASE_URL and DATABASE_URL.startswith(("postgres://", "postgresql://")):
+
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
@@ -131,14 +135,18 @@ if DATABASE_URL:
             ssl_require=True,
         )
     }
+
+# Local Development (SQLite)
 else:
-    # Local Development (SQLite)
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+    
+    
 # --------------------------------------------------
 # Password Validation
 # --------------------------------------------------
