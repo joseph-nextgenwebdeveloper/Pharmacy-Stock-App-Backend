@@ -25,7 +25,6 @@ ALLOWED_HOSTS = [
     for host in os.getenv(
         "ALLOWED_HOSTS",
         "127.0.0.1,localhost"
-        "https://pharmacy-stock-app-backend.onrender.com/"
     ).split(",")
 ]
 
