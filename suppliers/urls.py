@@ -1,6 +1,6 @@
-from os import path
+from django.urls import path
 
-from suppliers.views import SupplierDetailView, SupplierListCreateView
+from .views import SupplierDetailView, SupplierListCreateView
 
 
 urlpatterns = [
