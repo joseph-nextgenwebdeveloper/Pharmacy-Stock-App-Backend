@@ -56,7 +56,6 @@ class BatchSerializer(serializers.ModelSerializer):
 
 
 class StockMovementSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = StockMovement
         fields = [
@@ -67,10 +66,11 @@ class StockMovementSerializer(serializers.ModelSerializer):
             "movement_type",
             "movement_date",
             "date",
+            "performed_by",
         ]
-
         read_only_fields = [
+            "id",
             "movement_date",
             "date",
+            "performed_by",
         ]
-

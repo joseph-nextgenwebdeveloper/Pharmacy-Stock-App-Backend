@@ -1,27 +1,37 @@
-from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import (
+    TokenObtainPairSerializer,
+)
 
 User = get_user_model()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
-    write_only=True,
-    min_length=8
+        write_only=True,
+        min_length=8,
     )
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'phone_number']
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "phone_number",
+        ]
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
-
-
+        return User.objects.create_user(
+            **validated_data
+        )
 
 
 class CustomTokenSerializer(TokenObtainPairSerializer):
+
+    username_field = "email"
 
     @classmethod
     def get_token(cls, user):
@@ -33,6 +43,23 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        if not email or not password:
+            raise serializers.ValidationError(
+                "Email and password are required."
+            )
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                "Invalid email or password."
+            )
+
+        attrs["username"] = user.username
+
         data = super().validate(attrs)
 
         data["id"] = self.user.id
@@ -46,22 +73,28 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
         return data
 
 
-
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'role'  ]
-
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "role",
+        ]
 
 
 class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
-    class Meta:
-        fields = ['new_password', 'confirm_password']
-
     def validate(self, data):
-        if data['new_password'] != data['confirm_password']:
-            raise serializers.ValidationError("Passwords do not match.")
+        if data["new_password"] != data["confirm_password"]:
+            raise serializers.ValidationError(
+                "Passwords do not match."
+            )
+
         return data
