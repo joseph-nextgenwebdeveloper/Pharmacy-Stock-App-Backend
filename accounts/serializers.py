@@ -28,7 +28,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-
 class CustomTokenSerializer(TokenObtainPairSerializer):
 
     username_field = "email"
@@ -58,20 +57,36 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
                 "Invalid email or password."
             )
 
-        attrs["username"] = user.username
+        authenticated_user = authenticate(
+            username=user.username,
+            password=password,
+        )
 
-        data = super().validate(attrs)
+        if authenticated_user is None:
+            raise serializers.ValidationError(
+                "Invalid email or password."
+            )
 
-        data["id"] = self.user.id
-        data["username"] = self.user.username
-        data["email"] = self.user.email
-        data["phone_number"] = self.user.phone_number
-        data["role"] = self.user.role
-        data["first_name"] = self.user.first_name
-        data["last_name"] = self.user.last_name
+        if not authenticated_user.is_active:
+            raise serializers.ValidationError(
+                "User account is inactive."
+            )
 
-        return data
+        self.user = authenticated_user
 
+        refresh = self.get_token(self.user)
+
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "id": self.user.id,
+            "username": self.user.username,
+            "email": self.user.email,
+            "phone_number": self.user.phone_number,
+            "role": self.user.role,
+            "first_name": self.user.first_name,
+            "last_name": self.user.last_name,
+        }
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
