@@ -19,6 +19,11 @@ class Medicine(models.Model):
 
     reorder_level = models.PositiveIntegerField(default=10)
     expiry_alert_days = models.PositiveIntegerField(default=30)
+    image = models.ImageField(
+        upload_to="medicines/",
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.name

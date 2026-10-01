@@ -26,6 +26,7 @@ class MedicineSerializer(serializers.ModelSerializer):
             "units",
             "reorder_level",
             "expiry_alert_days",
+            "image",
         ]
 
     def get_quantity(self, obj):
