@@ -31,6 +31,8 @@ def create_goods_received(*, user, supplier, invoice_number, notes, items):
             expiry_date=received_item.expiry_date,
             quantity=received_item.quantity,
             buying_price=received_item.buying_price,
+            selling_price=received_item.selling_price,
+            supplier=supplier,
         )
 
         StockMovement.objects.create(

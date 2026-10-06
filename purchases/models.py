@@ -31,12 +31,17 @@ class GoodsReceivedItem(models.Model):
         on_delete=models.PROTECT,
     )
     batch_number = models.CharField(max_length=50)
-    manufacture_date = models.DateField()
+    manufacture_date = models.DateField(null=True, blank=True)
     expiry_date = models.DateField()
     quantity = models.PositiveIntegerField()
     buying_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+    )
+    selling_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
     )
 
     def __str__(self):

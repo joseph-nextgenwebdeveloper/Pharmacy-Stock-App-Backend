@@ -5,8 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from inventory.models import Category, Medicine, Batch, StockMovement
 from inventory.serializers import BatchSerializer, CategorySerializer, MedicineSerializer, StockMovementSerializer 
 from django.db import transaction
+from django.db.models import Sum
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from notifications.services import (
+    create_low_stock_notification,
+    create_out_of_stock_notification,
+)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -84,3 +89,29 @@ class StockMovementViewSet(viewsets.ModelViewSet):
                 performed_by=self.request.user,
                 batch=locked_batch,
             )
+
+        # Outside the transaction (and never allowed to break the actual
+        # stock update if something here goes wrong, per the build notes'
+        # "keep this decoupled" instruction): check whether this movement
+        # just crossed the medicine into low/out-of-stock and notify.
+        try:
+            medicine = locked_batch.medicine
+            total_quantity = (
+                medicine.batches.aggregate(total=Sum("quantity"))["total"] or 0
+            )
+
+            if movement_type == "OUT":
+                if total_quantity <= 0:
+                    create_out_of_stock_notification(
+                        receiver=self.request.user,
+                        medicine=medicine,
+                    )
+                elif total_quantity <= medicine.reorder_level:
+                    create_low_stock_notification(
+                        receiver=self.request.user,
+                        medicine=medicine,
+                        quantity=total_quantity,
+                        reorder_level=medicine.reorder_level,
+                    )
+        except Exception:
+            pass

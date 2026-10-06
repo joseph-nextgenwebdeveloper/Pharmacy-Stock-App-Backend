@@ -10,7 +10,7 @@ class GoodsReceivedItemSerializer(serializers.ModelSerializer):
         fields = [
             "id", "medicine", "batch_number",
             "manufacture_date", "expiry_date",
-            "quantity", "buying_price",
+            "quantity", "buying_price", "selling_price",
         ]
         read_only_fields = ["id"]
 

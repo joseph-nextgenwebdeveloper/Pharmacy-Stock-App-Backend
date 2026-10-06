@@ -240,6 +240,28 @@ MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Render's disk is wiped on every deploy/restart, so uploaded medicine photos
+# stored on it disappear. Set CLOUDINARY_URL (cloudinary://KEY:SECRET@CLOUD)
+# in the Render environment and photos are stored on Cloudinary instead —
+# permanent, served over https. Without it, files fall back to local disk
+# (fine for development).
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "").strip()
+USE_CLOUDINARY = CLOUDINARY_URL.startswith("cloudinary://")
+
+if USE_CLOUDINARY:
+    INSTALLED_APPS += ["cloudinary_storage", "cloudinary"]
+
+    _static_backend = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {"BACKEND": _static_backend},
+    }
+    # Pre-Django-4.2 spelling of the same setting.
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
 
 # --------------------------------------------------
 # Default Primary Key
