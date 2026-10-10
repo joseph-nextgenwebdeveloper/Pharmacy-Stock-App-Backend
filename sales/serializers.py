@@ -5,12 +5,17 @@ from .services import create_sale
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
+    medicine_name = serializers.CharField(source="medicine.name", read_only=True)
+    batch_number = serializers.CharField(source="batch.batch_number", read_only=True)
+
     class Meta:
         model = SaleItem
         fields = [
             "id",
             "medicine",
+            "medicine_name",
             "batch",
+            "batch_number",
             "quantity",
             "unit_price",
             "subtotal",
@@ -20,6 +25,10 @@ class SaleItemSerializer(serializers.ModelSerializer):
 
 class SaleSerializer(serializers.ModelSerializer):
     items = SaleItemSerializer(many=True)
+    sold_by_name = serializers.SerializerMethodField()
+
+    def get_sold_by_name(self, obj):
+        return obj.sold_by.display_name if obj.sold_by_id else ""
 
     class Meta:
         model = Sale
@@ -27,6 +36,7 @@ class SaleSerializer(serializers.ModelSerializer):
             "id",
             "receipt_number",
             "sold_by",
+            "sold_by_name",
             "total_amount",
             "payment_method",
             "created_at",

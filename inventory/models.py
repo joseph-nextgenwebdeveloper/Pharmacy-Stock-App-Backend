@@ -108,29 +108,78 @@ class Batch(models.Model):
 
 
 class StockMovement(models.Model):
-    medicine = models.ForeignKey(
-        Medicine,
-        on_delete=models.CASCADE
+    """One line of the stock ledger: stock went into or out of ONE batch.
+
+    Rows are never edited or deleted through the API, so the history always
+    explains the current quantity. `quantity_before` / `quantity_after` are
+    the batch balance either side of the movement."""
+
+    REASON_RECEIVED = "RECEIVED"
+    REASON_DISPENSED = "DISPENSED"
+    REASON_RETURNED = "RETURNED"
+    REASON_DAMAGED = "DAMAGED"
+    REASON_EXPIRED = "EXPIRED"
+    REASON_COUNT = "COUNT_DISCREPANCY"
+    REASON_CORRECTION = "CORRECTION"
+    REASON_OTHER = "OTHER"
+
+    REASON_CHOICES = [
+        (REASON_RECEIVED, "Received"),
+        (REASON_DISPENSED, "Dispensed"),
+        (REASON_RETURNED, "Returned"),
+        (REASON_DAMAGED, "Damaged"),
+        (REASON_EXPIRED, "Expired"),
+        (REASON_COUNT, "Stock count discrepancy"),
+        (REASON_CORRECTION, "Correction"),
+        (REASON_OTHER, "Other"),
+    ]
+
+    IN_REASONS = (
+        REASON_RECEIVED,
+        REASON_RETURNED,
+        REASON_COUNT,
+        REASON_CORRECTION,
+        REASON_OTHER,
     )
-    batch = models.ForeignKey(
-        Batch,
-        on_delete=models.CASCADE
+    OUT_REASONS = (
+        REASON_DISPENSED,
+        REASON_DAMAGED,
+        REASON_EXPIRED,
+        REASON_COUNT,
+        REASON_CORRECTION,
+        REASON_OTHER,
     )
+
+    medicine = models.ForeignKey(Medicine, on_delete=models.PROTECT)
+    batch = models.ForeignKey(Batch, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
     movement_type = models.CharField(
         max_length=10,
         choices=[
             ("IN", "In"),
             ("OUT", "Out"),
-        ]
+        ],
     )
+    reason = models.CharField(
+        max_length=20, choices=REASON_CHOICES, blank=True, default=""
+    )
+    reference = models.CharField(max_length=100, blank=True, default="")
     note = models.TextField(blank=True, default="")
+    quantity_before = models.PositiveIntegerField(null=True, blank=True)
+    quantity_after = models.PositiveIntegerField(null=True, blank=True)
     movement_date = models.DateTimeField(auto_now_add=True)
     date = models.DateField(auto_now_add=True)
-    performed_by = models.ForeignKey(
-        "accounts.User",
-        on_delete=models.CASCADE
-    )
+    performed_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT)
+
+    class Meta:
+        ordering = ["-movement_date", "-id"]
+
+    @property
+    def effective_reason(self):
+        """Older rows have no reason stored; infer it from the direction."""
+        if self.reason:
+            return self.reason
+        return self.REASON_RECEIVED if self.movement_type == "IN" else self.REASON_DISPENSED
 
     def __str__(self):
         return (

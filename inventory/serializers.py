@@ -134,16 +134,18 @@ class BatchSerializer(serializers.ModelSerializer):
 
 
 class StockMovementSerializer(serializers.ModelSerializer):
-    medicine_name = serializers.CharField(
-        source="medicine.name", read_only=True
-    )
-    medicine_sku = serializers.CharField(
-        source="medicine.sku", read_only=True
-    )
-    batch_number = serializers.CharField(
-        source="batch.batch_number", read_only=True
-    )
+    medicine_name = serializers.CharField(source="medicine.name", read_only=True)
+    medicine_sku = serializers.CharField(source="medicine.sku", read_only=True)
+    batch_number = serializers.CharField(source="batch.batch_number", read_only=True)
     performed_by_name = serializers.SerializerMethodField()
+    performed_by_role = serializers.CharField(
+        source="performed_by.role", read_only=True
+    )
+    performed_by_avatar = serializers.SerializerMethodField()
+    reason = serializers.ChoiceField(
+        choices=StockMovement.REASON_CHOICES, required=False, allow_blank=True
+    )
+    reason_label = serializers.SerializerMethodField()
 
     class Meta:
         model = StockMovement
@@ -156,22 +158,42 @@ class StockMovementSerializer(serializers.ModelSerializer):
             "batch_number",
             "quantity",
             "movement_type",
+            "reason",
+            "reason_label",
+            "reference",
             "note",
+            "quantity_before",
+            "quantity_after",
             "movement_date",
             "date",
             "performed_by",
             "performed_by_name",
+            "performed_by_role",
+            "performed_by_avatar",
         ]
         read_only_fields = [
             "id",
             "movement_date",
             "date",
             "performed_by",
+            "quantity_before",
+            "quantity_after",
         ]
 
     def get_performed_by_name(self, obj):
         user = obj.performed_by
-        return (user.get_full_name() or user.username) if user else ""
+        return user.display_name if user else ""
+
+    def get_performed_by_avatar(self, obj):
+        user = obj.performed_by
+        if not user or not user.avatar:
+            return None
+        request = self.context.get("request")
+        url = user.avatar.url
+        return request.build_absolute_uri(url) if request else url
+
+    def get_reason_label(self, obj):
+        return dict(StockMovement.REASON_CHOICES).get(obj.effective_reason, "")
 
     def validate(self, attrs):
         batch = attrs.get("batch")
