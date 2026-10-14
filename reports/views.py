@@ -10,7 +10,10 @@ from .serializers import (
     SlowMovingMedicineSerializer,
     StockValuationReportSerializer,
 )
+from accounts.views import can_view_team_activity
+
 from .services import (
+    get_activity_report,
     get_expired_medicines,
     get_fast_moving_medicines,
     get_inventory_report,
@@ -80,3 +83,26 @@ class SlowMovingMedicineView(APIView):
         serializer = SlowMovingMedicineSerializer(data, many=True)
 
         return Response(serializer.data)
+
+
+class ActivityReportView(APIView):
+    """Movement + activity report for any period, ready for the app to print.
+
+    GET /api/reports/activity/?period=day|week|month|custom
+        &date=YYYY-MM-DD        (any date inside the day / week / month)
+        &start=YYYY-MM-DD&end=YYYY-MM-DD   (period=custom)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        params = request.query_params
+        data = get_activity_report(
+            request.user,
+            period=params.get("period", "day"),
+            anchor=params.get("date"),
+            start=params.get("start"),
+            end=params.get("end"),
+            can_see_team=can_view_team_activity(request.user),
+        )
+        return Response(data)

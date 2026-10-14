@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    ActivityReportView,
     ExpiredMedicineReportView,
     FastMovingMedicineView,
     InventoryReportView,
@@ -11,6 +12,7 @@ from .views import (
 
 
 urlpatterns = [
+    path("activity/", ActivityReportView.as_view(), name="activity-report"),
     path("inventory/", InventoryReportView.as_view(), name="inventory-report"),
     path("monthly-movements/", MonthlyMovementReportView.as_view(), name="monthly-movement-report"),
     path("expired/", ExpiredMedicineReportView.as_view(), name="expired-report"),

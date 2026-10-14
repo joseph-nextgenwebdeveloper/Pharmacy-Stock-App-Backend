@@ -79,6 +79,17 @@ def get_dashboard_data(user):
             }
         )
 
+    # Dispensed this week vs the 7 days before, for the "+8%" style trend.
+    prev_start = week_start - timedelta(days=7)
+    week_dispensed = sum(d["units_out"] for d in weekly_movements)
+    week_received = sum(d["units_in"] for d in weekly_movements)
+    prev_week_dispensed = (
+        StockMovement.objects.filter(
+            movement_type="OUT", date__gte=prev_start, date__lt=week_start
+        ).aggregate(total=Sum("quantity"))["total"]
+        or 0
+    )
+
     my_updates_today = (
         ActivityLog.objects.filter(user=user, created_at__date=today)
         .exclude(action__in=ActivityLog.NOT_UPDATES)
@@ -98,5 +109,8 @@ def get_dashboard_data(user):
         "expired_batches": expired_batches,
         "expiring_batches": expiring_batches,
         "weekly_movements": weekly_movements,
+        "week_dispensed": week_dispensed,
+        "week_received": week_received,
+        "prev_week_dispensed": prev_week_dispensed,
         "my_updates_today": my_updates_today,
     }

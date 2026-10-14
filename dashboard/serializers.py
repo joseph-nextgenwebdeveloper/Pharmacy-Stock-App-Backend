@@ -20,4 +20,7 @@ class DashboardSerializer(serializers.Serializer):
     expired_batches = serializers.IntegerField()
     expiring_batches = serializers.IntegerField()
     weekly_movements = DayMovementSerializer(many=True)
+    week_dispensed = serializers.IntegerField()
+    week_received = serializers.IntegerField()
+    prev_week_dispensed = serializers.IntegerField()
     my_updates_today = serializers.IntegerField()

@@ -4,7 +4,13 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.static import serve as serve_media
 
+from .health import health
+
 urlpatterns = [
+    # Cron / uptime ping: GET /health  ->  {"status": "ok"}
+    # (both spellings, so a cron job never gets bounced by a redirect)
+    path('health', health, name='health'),
+    path('health/', health),
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),  
     path('api/inventory/', include('inventory.urls')),

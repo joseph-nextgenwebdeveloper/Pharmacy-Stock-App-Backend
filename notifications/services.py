@@ -4,8 +4,8 @@ How an alert behaves
 --------------------
 * The first time a problem appears (a medicine hits 0, a batch expires...)
   every active staff member gets a notification.
-* While the problem is NOT fixed the alert stays open and is repeated: an
-  out-of-stock alert every 2 hours, low-stock / expiry alerts once a day. A
+* While the problem is NOT fixed the alert stays open and is repeated at
+  most ONCE A DAY (out-of-stock, expired, low-stock and expiring-soon alike). A
   repeat re-opens the SAME notification (unread, newest first, reminder
   counter +1) instead of piling up duplicates.
 * As soon as the problem is fixed (stock added, batch used up) the open
@@ -15,7 +15,7 @@ How an alert behaves
 re-checks everything (and sends the due repeats); it runs, throttled, when
 the app asks for its notifications or dashboard, and from the
 `send_stock_reminders` management command (run it from a Render Cron Job
-every 15-30 minutes for repeats while nobody has the app open).
+once a day, e.g. 08:00, for the daily repeat while nobody has the app open).
 """
 import time
 from datetime import timedelta
@@ -26,7 +26,7 @@ from django.utils import timezone
 
 from .models import Notification, NotificationType
 
-OUT_OF_STOCK_REPEAT = timedelta(hours=2)
+OUT_OF_STOCK_REPEAT = timedelta(hours=24)
 LOW_STOCK_REPEAT = timedelta(hours=24)
 EXPIRY_REPEAT = timedelta(hours=24)
 
